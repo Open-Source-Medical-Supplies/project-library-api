@@ -1,0 +1,10 @@
+node_modules
+.vscode
+.DS_Store
+.env
+.env.development
+.env.production
+deno.lock
+supabase/dump-data.sql
+cruft
+.goose

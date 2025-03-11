@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "webflow-api": "https://esm.sh/webflow-api"
+  }
+}

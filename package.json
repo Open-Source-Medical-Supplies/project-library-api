@@ -1,0 +1,15 @@
+{
+  "name": "project-library-api",
+  "version": "1.0.0",
+  "description": "This repository contains the source code for the Project Library API.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "deploy": "supabase functions deploy"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.1"
+  }
+}
