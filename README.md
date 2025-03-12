@@ -15,6 +15,7 @@ The primary data model in this project is a 'projects' table.
 
 You will need to setup a couple environment variables to be able to connect to Supabase.
 
+## Project Structure
 
 Below is a description of the structure and purpose of the included files and directories:
 
@@ -55,7 +56,7 @@ This directory contains Deno-based serverless functions. Each function is a smal
 ### 4. Additional files
 - `package.json` / `package-lock.json`: Standard npm configurations, possibly used for local development or other scripts.
 
-## How It Works
+## Supabase Configuration
 
 1. **Supabase Configuration**: The `config.toml` file and the migrations in `supabase/migrations` define how the database tables and environment are set up. You can apply these migrations using the Supabase CLI.
 
@@ -71,7 +72,7 @@ This directory contains Deno-based serverless functions. Each function is a smal
 4. **CORS Support**:
    - `corsHeaders` imported from `cors.ts` helps ensure that cross-domain requests are permitted. If your front-end or other external services call these functions, including these headers is essential.
 
-## Getting Started
+### Getting Started
 
 1. **Prerequisites**:
    - [Supabase CLI](https://supabase.com/docs/guides/cli) installed.
@@ -98,9 +99,8 @@ This directory contains Deno-based serverless functions. Each function is a smal
    - Deploy functions to your Supabase project:
 
      ```bash
+     supabase functions deploy projects
      supabase functions deploy categories
-     supabase functions deploy search
-     # etc.
      ```
    - The functions will be accessible at `https://<your-project>.functions.supabase.co/<function-name>`.
 
