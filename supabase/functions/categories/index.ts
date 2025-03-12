@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
   let dbQuery = supabase.from('Categories').select('*');
 
   if (search) {
-    dbQuery = dbQuery.ilike('name', `%${search}%`);
+    dbQuery = dbQuery.textSearch('name_description', `%${search}%`);
   }
 
   // if (categoryTokens) {
