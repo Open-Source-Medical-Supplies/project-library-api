@@ -11,6 +11,11 @@ This project uses [Supabase](https://supabase.com/) to host and manage database 
 The primary data model in this project is a 'projects' table.
 
 
+## Environment Setup
+
+You will need to setup a couple environment variables to be able to connect to Supabase.
+
+
 Below is a description of the structure and purpose of the included files and directories:
 
 ### 1. `supabase/config.toml`

@@ -19,15 +19,16 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_ANON_KEY') ?? '',
   );
 
-  let dbQuery = supabase.from('categories').select('*');
+  let dbQuery = supabase.from('Categories').select('*');
+
   if (search) {
     dbQuery = dbQuery.ilike('name', `%${search}%`);
   }
 
-  if (categoryTokens) {
-    const tokens = categoryTokens.split(',');
-    dbQuery = dbQuery.in('token', tokens);
-  }
+  // if (categoryTokens) {
+  //   const tokens = categoryTokens.split(',');
+  //   dbQuery = dbQuery.in('token', tokens);
+  // }
 
   const data = await dbQuery;
   return new Response(
