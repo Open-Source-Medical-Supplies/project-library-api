@@ -13,24 +13,31 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
   
-  let { search, categoryTokens } = await req.json();
+  const { search, categoryTokens } = await req.json();
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_ANON_KEY') ?? '',
   );
 
   let dbQuery = supabase.from('Projects').select('*');
-
   if (search) {
     dbQuery = dbQuery.textSearch('combined_text', `%${search}%`);
   }
 
-  // if (categoryTokens && categoryTokens !== '') {
-  //   let categoryTokensArray = categoryTokens.split(',');
-  //   dbQuery = dbQuery
-  //     .select('*, project_categories!inner(*)')
-  //     .in('project_categories.category_token', categoryTokensArray);
-  // }
+  // If category tokens are present.
+  if (categoryTokens && categoryTokens !== '') {
+    const categoryTokensArray = categoryTokens.split(',');
+    const projectTagsQuery = supabase
+      .from('ProjectTags')
+      .select("*")
+      .in('category_token', categoryTokensArray);
+    const { data: projectTags } = await projectTagsQuery;
+
+    if (projectTags?.length && projectTags.length > 0) {
+      dbQuery = dbQuery
+        .in('token', projectTags.map(tag => tag.project_token));
+    }
+  }
 
   const data = await dbQuery;
 

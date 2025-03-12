@@ -25,10 +25,10 @@ Deno.serve(async (req) => {
     dbQuery = dbQuery.textSearch('combined_text', `%${search}%`);
   }
 
-  // if (categoryTokens) {
-  //   const tokens = categoryTokens.split(',');
-  //   dbQuery = dbQuery.in('token', tokens);
-  // }
+  if (categoryTokens) {
+    const tokens = categoryTokens.split(',');
+    dbQuery = dbQuery.in('token', tokens);
+  }
 
   const data = await dbQuery;
   return new Response(
