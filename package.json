@@ -5,7 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "deploy": "supabase functions deploy"
+    "function:deploy": "supabase functions deploy",
+    "db:pull": "supabase db pull",
+    "db:reset": "supabase db reset"
   },
   "author": "",
   "license": "ISC",
