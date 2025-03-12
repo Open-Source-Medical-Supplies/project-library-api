@@ -6,6 +6,11 @@ This repository contains the source code for the Open Source Medical Supplies Pr
 
 This project uses [Supabase](https://supabase.com/) to host and manage database resources and serverless functions. The main code is located in the `supabase/functions` folder. Each function is written in [Deno](https://deno.land/) and deployed through the Supabase Edge Functions framework.
 
+## Data Models
+
+The primary data model in this project is a 'projects' table.
+
+
 Below is a description of the structure and purpose of the included files and directories:
 
 ### 1. `supabase/config.toml`
