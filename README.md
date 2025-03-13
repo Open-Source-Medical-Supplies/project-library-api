@@ -4,16 +4,7 @@ This repository contains the source code for the Open Source Medical Supplies Pr
 
 ## Overview
 
-This project uses [Supabase](https://supabase.com/) to host and manage database resources and serverless functions. The main code is located in the `supabase/functions` folder. Each function is written in [Deno](https://deno.land/) and deployed through the Supabase Edge Functions framework.
-
-## Data Models
-
-The primary data model in this project is a 'projects' table.
-
-
-## Environment Setup
-
-You will need to setup a couple environment variables to be able to connect to Supabase.
+This project uses [Supabase](https://supabase.com/) to store the project library data in a Postgresql we that can be easily queried and modified. The project also leverages serverless functions, located in the `supabase/functions` folder. Each function is written in [Deno](https://deno.land/) and deployed through the Supabase Edge Functions framework.
 
 ## Project Structure
 
@@ -55,6 +46,56 @@ This directory contains Deno-based serverless functions. Each function is a smal
 
 ### 4. Additional files
 - `package.json` / `package-lock.json`: Standard npm configurations, possibly used for local development or other scripts.
+
+## Data Models
+
+- `Projects`
+- `Categories`
+- `ProjectTags`
+
+## API Endpoints
+
+- `/functions/v1/projects`
+- `/functions/v1/categories`
+
+## Environment Setup
+
+You will need to setup a couple environment variables to be able to connect to the Supabase platform.
+
+## Syncronized Local DB with Production
+
+The migrations stored in version control in Github are not automatically updated when the DB in production changes right now. To ensure that codebase has a copy of the latest DB schema, you can run the following command:
+
+```bash
+supabase db pull
+```
+
+## Local DB
+
+To run the Supabase DB locally use the following command:
+
+```bash
+supabase start
+```
+
+Starting up Supabase locally will output the connection details needed for testing and performing migrations in the [project-library-client](https://github.com/Open-Source-Medical-Supplies/project-library-client) and [project-library-data](https://github.com/Open-Source-Medical-Supplies/project-library-data) repositories.
+
+## Local API
+
+To run the serverless function API locally, you can use the following command:
+
+```bash 
+supabase functions serve
+```
+
+You can test functions locally using curl by including the Authorization header with the Supabase Anon Key and the Content-Type header with the JSON data. For example:
+
+```Shell
+curl --request POST 'http://localhost:54321/functions/v1/END_POINT' \
+  --header 'Authorization: Bearer SUPABASE_ANON_KEY' \
+  --header 'Content-Type: application/json' \
+  --data '{ "ping":"pong" }'
+```
 
 ## Supabase Configuration
 
