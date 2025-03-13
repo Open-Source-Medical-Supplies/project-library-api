@@ -20,9 +20,9 @@ Deno.serve(async (req) => {
   );
 
   let dbQuery = supabase.from('Categories').select('*');
-
   if (search) {
-    dbQuery = dbQuery.textSearch('combined_text', `%${search}%`);
+    const formattedSearch = search.split(' ').join('+');
+    dbQuery = dbQuery.textSearch('combined_text', `%${formattedSearch}%`);
   }
 
   if (categoryTokens) {
