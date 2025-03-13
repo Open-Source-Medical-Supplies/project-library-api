@@ -11,7 +11,7 @@ import { WebflowClient } from "npm:webflow-api";
  * @param {Object} obj - The object to process
  * @returns {Object} - A new object with converted keys
  */
-function convertHyphensToUnderscores(obj) {
+function convertHyphensToUnderscores(obj: any) {
   const newObj = {};
   
   Object.keys(obj).forEach(key => {
@@ -25,7 +25,7 @@ function convertHyphensToUnderscores(obj) {
   return newObj;
 }
 
-async function updateCollectionId(collectionId, itemId) {
+async function updateCollectionId(collectionId: string, itemId: string) {
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -36,8 +36,8 @@ async function updateCollectionId(collectionId, itemId) {
   const collectionItem = await client.collections.items.getItem(collectionId, itemId);
   
   const SlugTableMap = {
-    'projects': 'projects',
-    'research-category': 'categories',
+    'projects': 'Projects',
+    'research-category': 'Categories',
     'tools': 'tools',
     'skills': 'skills',
   }
@@ -46,8 +46,15 @@ async function updateCollectionId(collectionId, itemId) {
     collectionItem.fieldData
   );
 
+  const tableName = SlugTableMap[collection?.slug as keyof typeof SlugTableMap];
+
+  if (tableName) {
+    console.error('Collection not found in SlugTableMap', collection.slug);
+    return;
+  }
+
   const { data: supabaseRow } = await supabase
-    .from(SlugTableMap[collection.slug])
+    .from(tableName)
     .select('*')
     .eq('token', itemId)
     .limit(1)
@@ -55,13 +62,13 @@ async function updateCollectionId(collectionId, itemId) {
 
   if (supabaseRow) {
     const { data, error } = await supabase
-      .from(SlugTableMap[collection.slug])
+      .from(tableName)
       .update(queryData)
       .eq('token', itemId);
     console.log('Updated collection item', data, error);
   } else {
     const { data, error } = await supabase
-      .from(SlugTableMap[collection.slug])
+      .from(tableName)
       .insert({
         ...queryData,
         token: itemId,
@@ -69,11 +76,6 @@ async function updateCollectionId(collectionId, itemId) {
     console.log('Inserted collection item', data, error);
   }
 }
-
-// addEventListener('beforeunload', (ev) => {
-//   console.log('Function will be shutdown due to', ev.detail?.reason)
-//   // save state or log the current progress
-// });
 
 Deno.serve(async (req) => {
   const { triggerType, payload } = await req.json();
@@ -88,15 +90,3 @@ Deno.serve(async (req) => {
     }
   });
 })
-
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/sync' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-    --header 'Content-Type: application/json' \
-    --data '{"name":"Functions"}'
-
-*/ ;
