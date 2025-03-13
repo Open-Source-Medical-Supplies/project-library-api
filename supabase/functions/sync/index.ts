@@ -47,9 +47,8 @@ async function updateCollectionId(collectionId: string, itemId: string) {
   );
 
   const tableName = SlugTableMap[collection?.slug as keyof typeof SlugTableMap];
-
-  if (tableName) {
-    console.error('Collection not found in SlugTableMap', collection.slug);
+  if (!tableName) {
+    console.error('Collection not found in SlugTableMap');
     return;
   }
 
