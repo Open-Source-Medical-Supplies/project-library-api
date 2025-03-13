@@ -60,42 +60,7 @@ This directory contains Deno-based serverless functions. Each function is a smal
 
 ## Environment Setup
 
-You will need to setup a couple environment variables to be able to connect to the Supabase platform.
-
-## Syncronized Local DB with Production
-
-The migrations stored in version control in Github are not automatically updated when the DB in production changes right now. To ensure that codebase has a copy of the latest DB schema, you can run the following command:
-
-```bash
-supabase db pull
-```
-
-## Local DB
-
-To run the Supabase DB locally use the following command:
-
-```bash
-supabase start
-```
-
-Starting up Supabase locally will output the connection details needed for testing and performing migrations in the [project-library-client](https://github.com/Open-Source-Medical-Supplies/project-library-client) and [project-library-data](https://github.com/Open-Source-Medical-Supplies/project-library-data) repositories.
-
-## Local API
-
-To run the serverless function API locally, you can use the following command:
-
-```bash 
-supabase functions serve
-```
-
-You can test functions locally using curl by including the Authorization header with the Supabase Anon Key and the Content-Type header with the JSON data. For example:
-
-```Shell
-curl --request POST 'http://localhost:54321/functions/v1/END_POINT' \
-  --header 'Authorization: Bearer SUPABASE_ANON_KEY' \
-  --header 'Content-Type: application/json' \
-  --data '{ "ping":"pong" }'
-```
+You will need to setup a couple environment variables to be able to connect to the Supabase platform. You will need to be invited to the Supabase project to get the credentials to pull from the production instance and deploy changes to the functions.
 
 ## Supabase Configuration
 
@@ -121,22 +86,24 @@ curl --request POST 'http://localhost:54321/functions/v1/END_POINT' \
 
 2. **Local Development**:
    - Clone the repository.
+   - Pull the latest state of the DB `supabase db pull`.
    - Run `supabase start` to launch Supabase locally.
-   - Apply migrations by doing `supabase db push` (or `supabase migration apply` if you have pending migration files).
-   - Within each function folder (e.g., `supabase/functions/categories`), you can run or test your function locally with:
+   - Within each function folder (e.g., `supabase/functions/categories`), you can start the functions `supabase functions serve`.
 
-     ```bash
-     supabase functions serve categories --env-file=../.env.local
-     ```
-   - Then send an HTTP request to test (for example):
+3. **Testing Functions**:
+   - You can test functions locally using `curl` or a tool like Postman.
+   ```Shell
+   curl --request POST 'http://localhost:54321/functions/v1/END_POINT' \
+      --header 'Authorization: Bearer SUPABASE_ANON_KEY' \
+      --header 'Content-Type: application/json' \
+      --data '{ "ping":"pong" }'
+   ```
 
-     ```bash
-     curl -i --location --request POST 'http://localhost:54321/functions/v1/categories' \
-       --header 'Content-Type: application/json' \
-       --data '{"search":"medical","categoryTokens":"food,water"}'
-     ```
+4. **Connecting other repositories**
+    - Starting up Supabase locally will output the connection details needed for testing and performing migrations
+    - You can use the variables in the .env files in the [project-library-client](https://github.com/Open-Source-Medical-Supplies/project-library-client) and [project-library-data](https://github.com/Open-Source-Medical-Supplies/project-library-data) repositories.
 
-3. **Deployment**:
+5. **Deployment**:
    - Deploy functions to your Supabase project:
 
      ```bash
@@ -145,42 +112,12 @@ curl --request POST 'http://localhost:54321/functions/v1/END_POINT' \
      ```
    - The functions will be accessible at `https://<your-project>.functions.supabase.co/<function-name>`.
 
-## Example Usage
-
-- **categories/index.ts**: Filters and retrieves category records from the database.
-  ```bash
-  curl -i --location --request POST 'https://<project>.functions.supabase.co/categories' \
-    --header 'Content-Type: application/json' \
-    --data '{"search":"tools"}'
-  ```
-
-- **search/index.ts**: Returns a personalized message.
-  ```bash
-  curl -i --location --request POST 'https://<project>.functions.supabase.co/search' \
-    --header 'Content-Type: application/json' \
-    --data '{"name":"World"}'
-  ```
-
-The response might look like:
-
-```json
-{
-  "message": "Hello World!"
-}
-```
-
 ## Contributing
+
+Thanks for your interest in the Open Source Medical Supplies Project Library! If you are interested in contributing, please email use at [info@opensourcemedicalsupplies.org](mailto:info@opensourcemedicalsupplies.org).
 
 1. Fork this repository
 2. Create a new branch: `git checkout -b feature/my-new-feature`
 3. Make your changes and commit them: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin feature/my-new-feature`
 5. Submit a pull request
-
-## License
-
-[MIT](LICENSE)
-
----
-
-*Thank you for using the Open Source Medical Supplies (OSMS) Project Library API!*
