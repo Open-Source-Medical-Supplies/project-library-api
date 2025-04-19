@@ -8,3 +8,4 @@ deno.lock
 supabase/dump-data.sql
 cruft
 .goose
+supabase/.temp
