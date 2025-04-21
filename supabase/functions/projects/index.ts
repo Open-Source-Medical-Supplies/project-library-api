@@ -28,15 +28,14 @@ Deno.serve(async (req) => {
   // If category tokens are present.
   if (categoryTokens && categoryTokens !== '') {
     const categoryTokensArray = categoryTokens.split(',');
-    const projectTagsQuery = supabase
-      .from('ProjectTags')
+    const projectFiltersQuery = supabase
+      .from('ProjectFilters')
       .select("*")
       .in('category_token', categoryTokensArray);
-    const { data: projectTags } = await projectTagsQuery;
-
-    if (projectTags?.length && projectTags.length > 0) {
+    const { data: projectFilters } = await projectFiltersQuery;
+    if (projectFilters?.length && projectFilters.length > 0) {
       dbQuery = dbQuery
-        .in('token', projectTags.map(tag => tag.project_token));
+        .in('token', projectFilters.map(tag => tag.project_token));
     }
   }
 
