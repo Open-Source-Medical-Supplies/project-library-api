@@ -34,12 +34,13 @@ async function updateCollectionId(collectionId: string, itemId: string) {
   const client = new WebflowClient({ accessToken });
   const collection = await client.collections.get(collectionId);
   const collectionItem = await client.collections.items.getItem(collectionId, itemId);
-  
+
+  // NOTE: The slugs are not 1:1 with the table names
+  // and need to be mapped to the correct table names
   const SlugTableMap = {
     'projects': 'Projects',
     'research-category': 'Categories',
-    'tools': 'tools',
-    'skills': 'skills',
+    'filters': 'Filters',
   }
 
   const queryData = convertHyphensToUnderscores(
