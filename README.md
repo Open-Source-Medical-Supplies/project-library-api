@@ -35,7 +35,7 @@ This directory contains Deno-based serverless functions. Each function is a smal
 - **`projects/`**
   - The primary search function for the project library.
 
-- *`filters/`**
+- **`filters/`**
   - Fetches filters that are rendered on the frontend search sidebar.
 
 - **`shared/`**
