@@ -11,7 +11,7 @@ import { WebflowClient } from "npm:webflow-api";
  * @param {Object} obj - The object to process
  * @returns {Object} - A new object with converted keys
  */
-function convertHyphensToUnderscores(obj: any) {
+function buildUpdateForUpdate(obj: any) {
   const newObj = {};
   
   Object.keys(obj).forEach(key => {
@@ -25,66 +25,122 @@ function convertHyphensToUnderscores(obj: any) {
   return newObj;
 }
 
-async function updateCollectionId(collectionId: string, itemId: string) {
+const SlugTableMap = {
+  'projects': 'Projects',
+  'research-category': 'Categories',
+  'filters': 'Filters',
+};
+
+const FilterTypeTokenToKey = {
+  '9ad9586823cee333e5dcb781df8a84b6': 'SKILL',
+  'd88996c5f97ad032c9bb9c50224a8fca': 'TOOL',
+  '6e90a40a8cb7ce53ea37ce0e4d37c37e': 'MATERIAL',
+}
+
+Deno.serve(async (req) => {
+  const { triggerType, payload } = await req.json();
+
+  // Short circuit if the request is not a collection item change.
+  if (triggerType !== 'collection_item_changed') {
+    return new Response(JSON.stringify({ "message": "noop" }), {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+  };
+
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
   );
+
   const accessToken = Deno.env.get('WEBFLOW_ACCESS_TOKEN') ?? '';
   const client = new WebflowClient({ accessToken });
-  const collection = await client.collections.get(collectionId);
-  const collectionItem = await client.collections.items.getItem(collectionId, itemId);
+  const collection = await client.collections.get(payload.collectionId);
+  const slug = collection?.slug ?? '';
+  const slugMapKey = slug as keyof typeof SlugTableMap;
+  const tableName = SlugTableMap[slugMapKey];
 
-  // NOTE: The slugs are not 1:1 with the table names
-  // and need to be mapped to the correct table names
-  const SlugTableMap = {
-    'projects': 'Projects',
-    'research-category': 'Categories',
-    'filters': 'Filters',
-  }
-
-  const queryData = convertHyphensToUnderscores(
-    collectionItem.fieldData
-  );
-
-  const tableName = SlugTableMap[collection?.slug as keyof typeof SlugTableMap];
   if (!tableName) {
-    console.error('Collection not found in SlugTableMap');
+    console.error('Collection not found in SlubToTableNameMap');
     return;
   }
 
-  const { data: supabaseRow } = await supabase
+  const collectionItem = await client
+    .collections
+    .items
+    .getItem(collection.id, payload.id);
+
+  let { data: supabaseRow } = await supabase
     .from(tableName)
     .select('*')
-    .eq('token', itemId)
+    .eq('token', collectionItem.id)
     .limit(1)
     .single();
+
+  const queryData = buildUpdateForUpdate(
+    collectionItem.fieldData
+  )
+
+  if (tableName === 'Filters') {
+    const filterTypeLabel = collectionItem.fieldData['type'] ?? '';
+    const filterTypeKey = filterTypeLabel as keyof FilterTypeTokenToKey;
+    queryData['type'] = FilterTypeTokenToKey[filterTypeKey] ?? 'NONE';
+  }
+
+  let associatedFilters = [];
+  if (tableName === 'Projects') {
+    associatedFilters = queryData['filters'];
+    console.log('Project filters', associatedFilters);
+    delete queryData['filters'];
+  }
 
   if (supabaseRow) {
     const { data, error } = await supabase
       .from(tableName)
       .update(queryData)
-      .eq('token', itemId);
+      .eq('token', collectionItem.id);
     console.log('Updated collection item', data, error);
   } else {
     const { data, error } = await supabase
       .from(tableName)
       .insert({
         ...queryData,
-        token: itemId,
+        token: collectionItem.id,
       });
     console.log('Inserted collection item', data, error);
   }
-}
 
-Deno.serve(async (req) => {
-  const { triggerType, payload } = await req.json();
+  if (tableName === 'Projects') {
+    supabaseRow = await supabase
+      .from(tableName)
+      .select('*')
+      .eq('token', collectionItem.id)
+      .limit(1)
+      .single();
 
-  if (triggerType === 'collection_item_changed') {
-    EdgeRuntime.waitUntil(updateCollectionId(payload.collectionId, payload.id));
+    // TODO: Handle more gracefully instead of
+    // deleting and re-inserting all filters
+    const deleteResponse = await supabase
+      .from('ProjectFilters')
+      .delete()
+      .eq('project_token', supabaseRow.data.token);
+
+    associatedFilters.forEach(async (filterToken) => {
+      const { data, error } = await supabase
+        .from('ProjectFilters')
+        .insert({
+          project_token: supabaseRow.data.token,
+          filter_token: filterToken,
+        });
+      console.log('Inserted project filter', data, error);
+    });
   }
 
-  return new Response(JSON.stringify({ "message": "done" }), {
+  // TODO: Consider moving code into a separate function
+  // EdgeRuntime.waitUntil(updateCollectionId(payload.collectionId, payload.id));
+
+  return new Response(JSON.stringify({ "message": "update complete" }), {
     headers: {
       "Content-Type": "application/json"
     }
