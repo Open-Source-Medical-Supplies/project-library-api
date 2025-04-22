@@ -27,31 +27,24 @@ SQL files (or other migration scripts) that help manage and version-control chan
 This directory contains Deno-based serverless functions. Each function is a small module that can be called via an HTTP request. Important sub-folders include:
 
 - **`categories/`**
-  - `index.ts`: A Supabase edge function that queries the `categories` table in the database. It accepts JSON with optional fields:
-    - `search`: A string to filter category names via case-insensitive matching.
-    - `categoryTokens`: A comma-separated list of token values. The function will return all categories whose tokens match the provided list.
+  - Used to fetch categories from the database.
 
-  - `deno.json`: Provides metadata and dependencies for the Deno environment.
+- **`sync/`**
+  - Used to sync data between Webflow and Supabase. It contains a function that is triggered by a webhook from Webflow.
 
-- **`search/`**
-  - `index.ts`: A simple example function that logs a message and returns a JSON response with a `"message"` field. It shows how to handle a POST request and send a JSON response.
+- **`projects/`**
+  - The primary search function for the project library.
 
-  - `deno.json`: Similar to above, houses metadata for the search function.
-
-- **`sync/`** *(not fully displayed here)*
-  - Might be used to synchronize data with another system.
-
-- **`projects/`** *(not fully displayed here)*
-  - Another function that can connect to or manage a `projects` table.
+- *`filters/`**
+  - Fetches filters that are rendered on the frontend search sidebar.
 
 - **`shared/`**
   - `cors.ts`: A small shared utility to insert necessary CORS headers, enabling cross-origin requests.
 
 - **`tests/`**
-  - `search-test.ts`: Potentially a test suite for the `search` function. This may include an example of how to test edge functions locally.
 
-### 4. Additional files
-- `package.json` / `package-lock.json`: Standard npm configurations, possibly used for local development or other scripts.
+### 4. Dependency Management
+- `package.json` / `package-lock.json`: Standard npm configurations, used for local development.
 
 ## Data Models
 
