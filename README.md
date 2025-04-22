@@ -57,12 +57,14 @@ This directory contains Deno-based serverless functions. Each function is a smal
 
 - `Projects`
 - `Categories`
-- `ProjectTags`
+- `ProjectFilters`
 
 ## API Endpoints
 
 - `/functions/v1/projects`
 - `/functions/v1/categories`
+- `/functions/v1/filters`
+- `/functions/v1/sync`
 
 ## Environment Setup
 
