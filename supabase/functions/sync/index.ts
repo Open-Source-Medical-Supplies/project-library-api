@@ -20,6 +20,16 @@ function buildUpdateForUpdate(obj: any) {
     
     // Keep the original value without recursive processing
     newObj[newKey] = obj[key];
+
+    if (newKey === 'primary_image') {
+      // If the key is 'filters', convert the value to an array
+      newObj[newKey] = newObj[newKey].url;
+    }
+
+    if (newKey === 'projects') {
+      // If the key is 'filters', convert the value to an array
+      delete newObj[newKey];
+    }
   });
   
   return newObj;
@@ -131,7 +141,7 @@ Deno.serve(async (req) => {
       .delete()
       .eq('project_token', supabaseRow.data.token);
 
-    associatedFilters.forEach(async (filterToken) => {
+    associatedFilters?.forEach(async (filterToken) => {
       const { data, error } = await supabase
         .from('ProjectFilters')
         .insert({
