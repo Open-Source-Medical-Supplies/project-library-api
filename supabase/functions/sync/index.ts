@@ -89,10 +89,15 @@ Deno.serve(async (req) => {
   }
 
   let associatedFilters = [];
+  let associatedCategory = null;
   if (tableName === 'Projects') {
     associatedFilters = queryData['filters'];
     console.log('Project filters', associatedFilters);
     delete queryData['filters'];
+
+    associatedCategory = queryData['category_2'];
+    console.log('Project category', associatedCategory);
+    delete queryData['category_2'];
   }
 
   if (supabaseRow) {
@@ -135,6 +140,15 @@ Deno.serve(async (req) => {
         });
       console.log('Inserted project filter', data, error);
     });
+
+    if (associatedCategory) {
+      const { data, error } = await supabase
+        .from('ProjectFilters')
+        .insert({
+          project_token: supabaseRow.data.token,
+          category_token: associatedCategory,
+        });
+    }
   }
 
   // TODO: Consider moving code into a separate function
