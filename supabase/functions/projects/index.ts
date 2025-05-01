@@ -5,16 +5,18 @@
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
-import { createClient, SupabaseClient } from 'jsr:@supabase/supabase-js@2'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders } from '../shared/cors.ts'
 
-function tokensFromCommaSeparatedString(
-  commaSeparatedString: string,
-): string[] {
-  if (!commaSeparatedString || commaSeparatedString === '') {
-    return [];
-  }
-  return commaSeparatedString.split(',').map((token) => token.trim());
+interface Project {
+  token: string;
+  name: string;
+}
+
+interface ProjectFilter {
+  project_token: string;
+  category_token: string;
+  filter_token: string;
 }
 
 Deno.serve(async (req) => {
@@ -28,46 +30,55 @@ Deno.serve(async (req) => {
     filterTokens: filterTokensString,
   } = await req.json();
 
-  const categoryTokens = tokensFromCommaSeparatedString(categoryTokensString);
-  const filterTokens = tokensFromCommaSeparatedString(filterTokensString);
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')  ?? '';
   const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  let dbQuery = supabase.from('Projects').select('*');
 
   // Apply filters based on the request parameters
+  let searchResultTokens = [] as string[];
   if (search) {
     const formattedSearch = search.split(' ').join('+');
-    dbQuery = dbQuery.textSearch('combined_text', `%${formattedSearch}%`);
+    const { data: searchData, error: searchError } = await supabase
+      .from('Projects')
+      .select('*')
+      .textSearch('combined_text', `%${formattedSearch}%`);   
+    console.log('searchData', searchData, searchError);
+    if (searchData?.length && searchData.length > 0) {
+      searchResultTokens = searchData.map((tag: Project) => tag.token);
+    }
   }
 
-  if (categoryTokens.length > 0) {
-    const categoryFiltersQuery = supabase
+  if (categoryTokensString) {
+    const categoryTokens = categoryTokensString.split(',');
+    const { data: projectFilters } = await supabase
       .from('ProjectFilters')
       .select("*")
       .in('category_token', categoryTokens);
 
-    const { data: categoryFilters } = await categoryFiltersQuery;
-    if (categoryFilters?.length && categoryFilters.length > 0) {
-      dbQuery = dbQuery
-        .in('token', categoryFilters.map(tag => tag.project_token));
+    if (projectFilters?.length && projectFilters.length > 0) {
+      const projectTokens = projectFilters.map((tag: ProjectFilter) => tag.project_token);
+      searchResultTokens.push(...projectTokens);
     }
   }
 
-  if (filterTokens.length > 0) {
-    const projectFiltersQuery = supabase
+  if (filterTokensString) {
+    const filterTokens = filterTokensString.split(',');
+    const { data: projectFilters } = await supabase
       .from('ProjectFilters')
       .select("*")
       .in('filter_token', filterTokens);
 
-    const { data: projectFilters } = await projectFiltersQuery;
     if (projectFilters?.length && projectFilters.length > 0) {
-      dbQuery = dbQuery
-        .in('token', projectFilters.map(tag => tag.project_token));
+      const projectTokens = projectFilters.map((tag: ProjectFilter) => tag.project_token);
+      searchResultTokens.push(...projectTokens);
     }
   }
 
-  const queryData = await dbQuery;
+  const uniqueTokens = [...new Set(searchResultTokens)];
+  const queryData = await supabase
+    .from('Projects')
+    .select('*')
+    .in('token', uniqueTokens);
   return new Response(
     JSON.stringify(queryData),
     { 
