@@ -36,17 +36,56 @@ const options = {
 // }
 
 // Test the 'hello-world' function
-const testSearch = async () => {
-  var client: SupabaseClient = createClient(supabaseUrl, supabaseKey, options)
+const testSync = async () => {
+  const client: SupabaseClient = createClient(supabaseUrl, supabaseKey, options)
 
-  // Invoke the 'hello-world' function with a parameter
-  const response = await client.functions.invoke('search', {
-    body: { name: 'bar' },
-  })
+  const { data: itemChangedData } = await client.functions.invoke('sync', {
+    body: {
+      triggerType: 'collection_item_changed',
+      payload: {
+        collectionId: '6806c9eeffd83f5a5f5efb10',
+        id: "6811339d1e530493e9456d99",
+      },
+    },
+  });
+  assertEquals(itemChangedData.message, 'valid');
 
-  console.log(response);
+  // const { data: itemDeletedData } = await client.functions.invoke('sync', {
+  //   body: {
+  //     triggerType: 'collection_item_deleted',
+  //     payload: {},
+  //   },
+  // });
+  // assertEquals(itemDeletedData.message, 'valid');
 
-  
+  // const { data: invalidData } = await client.functions.invoke('sync', {
+  //   body: {
+  //     triggerType: 'invalid_trigger_type',
+  //     payload: {},
+  //   },
+  // });
+  // assertEquals(invalidData.message, 'invalid');
+
+  // try {
+  //   let { data: func_data, error: func_error } = await client.functions.invoke('sync', {
+  //     body: {
+  //       triggerType: 'collection_item_changed',
+  //       payload: {}
+  //     },
+  //   });
+  //   console.log('Function data:', func_data);
+  //   console.log('Function error:', func_error);
+  //   assertEquals(func_data.message, 'invalid request');
+  //   // assertEquals(func_error, null);
+  // } catch (error) {
+  //   console.error('Error invoking function:', error);
+  // }
+
+  // Log the error from the function invocation
+  // console.log(func_error);
+
+
+  // console.log(response);
 
   // Check for errors from the function invocation
   // if (func_error) {
@@ -57,8 +96,8 @@ const testSearch = async () => {
   // console.log(JSON.stringify(func_data, null, 2))
 
   // Assert that the function returned the expected result
-  // assertEquals(func_data.message, 'Hello bar!')
+  
 }
 
 // Register and run the tests
-Deno.test('Hello-world Function Test', testSearch)
+Deno.test('Sync Function Test', testSync);
