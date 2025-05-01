@@ -117,7 +117,6 @@ Deno.serve(async (req) => {
         console.log('Project filters', associatedFilters);
         delete queryData['filters'];
         associatedCategory = queryData['category_2'];
-        console.log('Project category', associatedCategory);
         delete queryData['category_2'];
       }
       
@@ -125,8 +124,8 @@ Deno.serve(async (req) => {
         .from(tableName)
         .upsert({ ...queryData, token: item.id }, { onConflict: 'token' })
         .select()
-      
-      console.log('Inserted collection item', data, error);
+      console.log(`Inserted record into ${tableName}`, data, error);
+
       if (tableName === 'Projects') {
         const existingProjectFilters = await supabase
           .from('ProjectFilters')
@@ -145,6 +144,7 @@ Deno.serve(async (req) => {
             .in('filter_token', projectFiltersToDelete.map((filter) => filter.filter_token));
           console.log('Deleted project filters', deleteResponse);
         }
+
         associatedFilters?.forEach(async (filterToken) => {
           const { data, error } = await supabase
             .from('ProjectFilters')
@@ -152,6 +152,14 @@ Deno.serve(async (req) => {
             .select();
           console.log('Inserted project filter', data, error);
         });
+
+        if (associatedCategory) {
+          const { data, error } = await supabase
+            .from('ProjectFilters')
+            .upsert({ project_token: item.id, category_token: associatedCategory }, { onConflict: 'project_token, category_token' })
+            .select();
+          console.log('Inserted record in ProjectsFilter', data, error);
+        }
       }
       return defaultResponse;
     }
@@ -173,82 +181,3 @@ Deno.serve(async (req) => {
     }
   }
 });
-
-
-
-
-
-
-
-
-// let associatedFilters = [];
-// let associatedCategory = null;
-// if (tableName === 'Projects') {
-//   associatedFilters = queryData['filters'];
-//   console.log('Project filters', associatedFilters);
-//   delete queryData['filters'];
-
-//   associatedCategory = queryData['category_2'];
-//   console.log('Project category', associatedCategory);
-//   delete queryData['category_2'];
-// }
-
-// if (supabaseRow) {
-//   const { data, error } = await supabase
-//     .from(tableName)
-//     .update(queryData)
-//     .eq('token', collectionItem.id);
-//   console.log('Updated collection item', data, error);
-// } else {
-//   const { data, error } = await supabase
-//     .from(tableName)
-//     .insert({
-//       ...queryData,
-//       token: collectionItem.id,
-//     });
-//   console.log('Inserted collection item', data, error);
-// }
-
-// if (tableName === 'Projects') {
-//   supabaseRow = await supabase
-//     .from(tableName)
-//     .select('*')
-//     .eq('token', collectionItem.id)
-//     .limit(1)
-//     .single();
-
-//   // TODO: Handle more gracefully instead of
-//   // deleting and re-inserting all filters
-//   const deleteResponse = await supabase
-//     .from('ProjectFilters')
-//     .delete()
-//     .eq('project_token', supabaseRow.data.token);
-
-//   associatedFilters?.forEach(async (filterToken) => {
-//     const { data, error } = await supabase
-//       .from('ProjectFilters')
-//       .insert({
-//         project_token: supabaseRow.data.token,
-//         filter_token: filterToken,
-//       });
-//     console.log('Inserted project filter', data, error);
-//   });
-
-//   if (associatedCategory) {
-//     const { data, error } = await supabase
-//       .from('ProjectFilters')
-//       .insert({
-//         project_token: supabaseRow.data.token,
-//         category_token: associatedCategory,
-//       });
-//   }
-// }
-
-// // TODO: Consider moving code into a separate function
-// // EdgeRuntime.waitUntil(updateCollectionId(payload.collectionId, payload.id));
-
-// return new Response(JSON.stringify({ "message": "update complete" }), {
-//   headers: {
-//     "Content-Type": "application/json"
-//   }
-// });
